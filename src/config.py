@@ -21,10 +21,40 @@ ENV_FILE = BASE_DIR / ".env"
 # Load variables from .env into the process environment
 load_dotenv(dotenv_path=ENV_FILE)
 
-# Read the Gemini API key and model from the environment
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# Read the Gemini API key and model from the environment or Streamlit Cloud secrets
+def _resolve_gemini_api_key() -> str | None:
+    key = os.getenv("GEMINI_API_KEY")
+    if key and key.strip() and key.strip() != "your_key_here":
+        return key.strip()
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
+            sec_val = st.secrets["GEMINI_API_KEY"]
+            if sec_val and str(sec_val).strip():
+                return str(sec_val).strip()
+    except Exception:
+        pass
+    return key
+
+
+def _resolve_gemini_model() -> str:
+    model = os.getenv("GEMINI_MODEL")
+    if model and model.strip():
+        return model.strip()
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and "GEMINI_MODEL" in st.secrets:
+            sec_model = st.secrets["GEMINI_MODEL"]
+            if sec_model and str(sec_model).strip():
+                return str(sec_model).strip()
+    except Exception:
+        pass
+    return "gemini-3-flash-preview"
+
+
+GEMINI_API_KEY = _resolve_gemini_api_key()
 DEFAULT_MODEL = "gemini-3-flash-preview"
-GEMINI_MODEL = (os.getenv("GEMINI_MODEL") or DEFAULT_MODEL).strip()
+GEMINI_MODEL = _resolve_gemini_model()
 
 
 def validate_config(api_key: str | None = None) -> str:
@@ -40,7 +70,7 @@ def validate_config(api_key: str | None = None) -> str:
     Raises:
         ConfigurationError: If the API key is missing or set to the placeholder.
     """
-    candidate = api_key if api_key is not None else GEMINI_API_KEY
+    candidate = api_key if api_key is not None else _resolve_gemini_api_key()
     key = (candidate or "").strip()
     if not key or key in ("", "your_key_here"):
         raise ConfigurationError(
@@ -50,3 +80,4 @@ def validate_config(api_key: str | None = None) -> str:
             "Then open '.env' and set: GEMINI_API_KEY=your_actual_api_key"
         )
     return key
+

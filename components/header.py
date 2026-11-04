@@ -63,7 +63,7 @@ def render_header() -> None:
                         <span>API Key Missing</span>
                     </div>
                     <div style="color: #64748b; font-size: 0.74rem; margin-top: 2px;">
-                        Configure in .env file
+                        Configure in .env or Cloud Secrets
                     </div>
                 </div>
                 """,

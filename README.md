@@ -587,3 +587,93 @@ pytest -v
   - **Solution**: Check that `.env` exists in the project root directory and contains your real API key (not `your_key_here`).
 * **Issue: Streamlit Port 8501 is already in use**
   - **Solution**: Run on another port: `streamlit run app.py --server.port 8502`.
+
+---
+
+### 11.6 Running Directly with Docker (Containerized Setup)
+
+Docker allows you to run the entire application inside an isolated, production-grade container without needing to configure a local Python virtual environment.
+
+#### Prerequisites
+* Make sure **Docker** or **Docker Desktop** is installed and running on your machine.
+
+#### Step 1: Build the Docker Image
+From the project root directory, run:
+```bash
+cd /Users/bhaskarbudha/Desktop/invoice-extractor
+docker build -t invoice-extractor .
+```
+*(This builds a lightweight Python 3.11 image, installs all dependencies, and sets up health checks).*
+
+#### Step 2: Run the Docker Container
+Choose one of the following methods to start the container:
+
+**Method A: Using Your `.env` File (Recommended for Security)**:
+```bash
+docker run -d -p 8501:8501 --env-file .env --name invoice-app invoice-extractor
+```
+*(This safely passes your `GEMINI_API_KEY` without exposing it in terminal history).*
+
+**Method B: Passing the API Key Directly**:
+```bash
+docker run -d -p 8501:8501 -e GEMINI_API_KEY="AIzaSyYourActualKeyHere" --name invoice-app invoice-extractor
+```
+
+#### Step 3: Open the Web UI
+Open your browser and navigate to:
+```text
+http://localhost:8501
+```
+
+#### Step 4: Essential Docker Management Commands
+```bash
+# View live application and extraction logs
+docker logs -f invoice-app
+
+# Check container status
+docker ps
+
+# Stop the container
+docker stop invoice-app
+
+# Start the container again
+docker start invoice-app
+
+# Remove the container
+docker rm -f invoice-app
+```
+
+---
+
+### 11.7 Cloud Deployment & Sharing Links with Others
+
+> [!NOTE]
+> `http://localhost:8501` only works on **your own computer**. To share a live link with assessors, clients, or team members, use one of the deployment methods below:
+
+#### Option A: Streamlit Community Cloud (Recommended — 100% Free Public URL)
+1. Push your code to GitHub (`git push origin main`).
+2. Log in at [share.streamlit.io](https://share.streamlit.io) with GitHub.
+3. Select repo `invoice-extractor`, branch `main`, and main file `app.py`.
+4. In **Advanced Settings $\rightarrow$ Secrets**, paste:
+   ```toml
+   GEMINI_API_KEY = "AIzaSy..."
+   ```
+5. Click **Deploy**. You will receive a permanent public HTTPS link (e.g., `https://your-app.streamlit.app`).
+
+#### Option B: Deploy Container to Google Cloud Run
+```bash
+gcloud run deploy invoice-extractor \
+  --source . \
+  --port 8501 \
+  --set-env-vars GEMINI_API_KEY="AIzaSy..." \
+  --allow-unauthenticated
+```
+
+#### Option C: Instant Temporary Public Link via Cloudflare (30 Seconds)
+To share your currently running local Docker container with someone right now without deploying to the cloud:
+```bash
+brew install cloudflared
+cloudflared tunnel --url http://localhost:8501
+```
+Cloudflare will provide a temporary secure public link (e.g. `https://xxxx.trycloudflare.com`) pointing directly to your local instance.
+

@@ -1,0 +1,11 @@
+.env
+.env.*
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.git/
+.DS_Store
+*.zip
+output/result.json

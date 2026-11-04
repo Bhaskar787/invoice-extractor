@@ -47,23 +47,30 @@ def get_gemini_connection_status() -> Dict[str, Any]:
             - masked_key (str): Masked representation of key for display (e.g. AIza...4xY).
             - message (str): Human-friendly status text.
     """
-    key = os.getenv("GEMINI_API_KEY") or GEMINI_API_KEY or ""
+    try:
+        from src.config import _resolve_gemini_api_key, _resolve_gemini_model
+        key = _resolve_gemini_api_key() or ""
+        active_model = _resolve_gemini_model()
+    except Exception:
+        key = os.getenv("GEMINI_API_KEY") or GEMINI_API_KEY or ""
+        active_model = GEMINI_MODEL or DEFAULT_MODEL
+
     key = key.strip()
 
     if not key or key in ("", "your_key_here"):
         return {
             "is_configured": False,
-            "model": GEMINI_MODEL or DEFAULT_MODEL,
+            "model": active_model,
             "masked_key": "None",
-            "message": "API key not configured in .env",
+            "message": "API key not configured in .env or Cloud Secrets",
         }
 
     masked = f"{key[:4]}...{key[-4:]}" if len(key) >= 10 else "******"
     return {
         "is_configured": True,
-        "model": GEMINI_MODEL or DEFAULT_MODEL,
+        "model": active_model,
         "masked_key": masked,
-        "message": f"Connected to {GEMINI_MODEL or DEFAULT_MODEL}",
+        "message": f"Connected to {active_model}",
     }
 
 
