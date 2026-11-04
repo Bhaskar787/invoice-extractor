@@ -1,0 +1,20 @@
+# Current official Google Gemini Python SDK
+google-genai>=1.0.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Data validation and structured schema support
+pydantic>=2.0.0
+
+# Testing framework
+pytest>=8.0.0
+
+# Image processing support
+Pillow>=10.0.0
+
+# Interactive Web Application
+streamlit>=1.35.0
+
+# Tabular data processing for UI tables
+pandas>=2.0.0

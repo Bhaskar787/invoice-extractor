@@ -1,0 +1,117 @@
+# ==============================================================================
+# Git Ignore Rules for AI-Powered Invoice Extractor
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. API Keys & Sensitive Secrets (NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env.*
+*.env
+.streamlit/secrets.toml
+*.pem
+*.key
+*.crt
+
+# Always allow the example template to be tracked
+!.env.example
+
+# ------------------------------------------------------------------------------
+# 2. Virtual Environments & Dependencies (HEAVY / HUGE DIRECTORIES)
+# ------------------------------------------------------------------------------
+venv/
+.venv/
+env/
+ENV/
+*.venv/
+env.bak/
+venv.bak/
+
+# ------------------------------------------------------------------------------
+# 3. Python Bytecode & Runtime Caches
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Packaging & Build Artifacts
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+
+# ------------------------------------------------------------------------------
+# 4. Large Archives & Submission ZIPs (PREVENT UPLOADING HUGE ZIP FILES)
+# ------------------------------------------------------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# ------------------------------------------------------------------------------
+# 5. OS Metadata & Temporary System Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# Linux
+*~
+
+# ------------------------------------------------------------------------------
+# 6. IDEs & Code Editors
+# ------------------------------------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# 7. Logs & Temporary File Buffers
+# ------------------------------------------------------------------------------
+*.log
+*.tmp
+tmp/
+temp/
+
+# ------------------------------------------------------------------------------
+# 8. Explicitly Allowed Project Files
+# ------------------------------------------------------------------------------
+# Ensure UI theme configuration is committed (locks accessible light theme)
+!.streamlit/config.toml
+
+# Allow bundled sample invoice images
+!samples/*.png
+!samples/*.jpg
+!samples/*.jpeg
+!samples/*.webp
+
+# Allow verified extraction output files
+!output/*.json
