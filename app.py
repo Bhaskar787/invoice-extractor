@@ -128,7 +128,8 @@ def init_session_state() -> None:
         "validation_result": None,
         "processing_status": "idle",  # "idle" | "processing" | "success" | "error"
         "error_message": None,
-        "active_page": "Dashboard",
+        "nav_radio_selection": "Dashboard",
+        "pending_page": None,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -199,7 +200,7 @@ def render_dashboard_page() -> None:
         )
         st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
         if st.button("Upload New Invoice", type="primary", use_container_width=False):
-            st.session_state["active_page"] = "Extract Invoice"
+            st.session_state["pending_page"] = "Extract Invoice"
             st.rerun()
 
     with act_col2:
@@ -229,7 +230,7 @@ def render_dashboard_page() -> None:
                     st.session_state["current_filename"] = "invoice.png"
                     st.session_state["extracted_data"] = None
                     st.session_state["validation_result"] = None
-                    st.session_state["active_page"] = "Extract Invoice"
+                    st.session_state["pending_page"] = "Extract Invoice"
                     st.toast("Loaded samples/invoice.png successfully!")
                     st.rerun()
                 except Exception as err:
@@ -402,7 +403,7 @@ def render_results_page() -> None:
             unsafe_allow_html=True,
         )
         if st.button("Go to Extract Invoice", type="primary"):
-            st.session_state["active_page"] = "Extract Invoice"
+            st.session_state["pending_page"] = "Extract Invoice"
             st.rerun()
         return
 

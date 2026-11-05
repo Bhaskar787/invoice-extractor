@@ -155,7 +155,7 @@ def render_uploader() -> None:
                 status_box.update(label="Extraction & Validation Complete", state="complete", expanded=False)
 
                 # Automatically switch to Extraction Results page
-                st.session_state["active_page"] = "Extraction Results"
+                st.session_state["pending_page"] = "Extraction Results"
                 st.rerun()
 
             except ImageValidationError as err:

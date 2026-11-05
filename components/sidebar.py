@@ -43,20 +43,21 @@ def render_sidebar() -> str:
             unsafe_allow_html=True,
         )
 
-        current_page = st.session_state.get("active_page", PAGES[0])
-        if current_page not in PAGES:
-            current_page = PAGES[0]
+        # Consume any pending programmatic navigation request before rendering radio
+        if st.session_state.get("pending_page"):
+            target = st.session_state.pop("pending_page")
+            if target in PAGES:
+                st.session_state["nav_radio_selection"] = target
+
+        if "nav_radio_selection" not in st.session_state or st.session_state["nav_radio_selection"] not in PAGES:
+            st.session_state["nav_radio_selection"] = PAGES[0]
 
         selected_page = st.radio(
             "Select Section",
             PAGES,
-            index=PAGES.index(current_page),
-            label_visibility="collapsed",
             key="nav_radio_selection",
+            label_visibility="collapsed",
         )
-
-        # Update session state if page changed
-        st.session_state["active_page"] = selected_page
 
         st.markdown("<hr style='margin: 14px 0; border: none; border-top: 1px solid #cbd5e1;'/>", unsafe_allow_html=True)
 
@@ -98,7 +99,7 @@ def render_sidebar() -> str:
             st.session_state["validation_result"] = None
             st.session_state["processing_status"] = "idle"
             st.session_state["error_message"] = None
-            st.session_state["active_page"] = PAGES[0]
+            st.session_state["pending_page"] = PAGES[0]
             st.rerun()
 
         st.markdown(
