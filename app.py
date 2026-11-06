@@ -28,18 +28,14 @@ from components import (
 )
 from src.services import get_gemini_connection_status
 
-# =============================================================================
-# STREAMLIT PAGE CONFIGURATION
-# =============================================================================
+# Streamlit page configuration
 st.set_page_config(
     page_title="InvoiceAI – Smart Invoice Extraction",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# =============================================================================
-# BOOTSTRAP ICONS & GLOBAL CUSTOM CSS STYLING
-# =============================================================================
+# Bootstrap icons & custom styling
 st.markdown(
     """
     <!-- Bootstrap Icons CDN -->
@@ -115,9 +111,7 @@ st.markdown(
 )
 
 
-# =============================================================================
-# SESSION STATE INITIALIZATION
-# =============================================================================
+# Session state initialization
 def init_session_state() -> None:
     """Initializes all required session state variables."""
     defaults = {
@@ -139,9 +133,7 @@ def init_session_state() -> None:
 init_session_state()
 
 
-# =============================================================================
-# PAGE 1: DASHBOARD
-# =============================================================================
+# Page 1: Dashboard
 def render_dashboard_page() -> None:
     """Renders the executive dashboard overview with session statistics and recent files."""
     st.markdown(
@@ -291,9 +283,7 @@ def render_dashboard_page() -> None:
         st.dataframe(pd.DataFrame(table_rows), use_container_width=True, hide_index=True)
 
 
-# =============================================================================
-# PAGE 2: EXTRACT INVOICE
-# =============================================================================
+# Page 2: Extract Invoice
 def render_extract_page() -> None:
     """Renders the invoice upload and extraction interface."""
     st.markdown(
@@ -361,9 +351,7 @@ def render_extract_page() -> None:
         render_invoice_preview(image_bytes=image_bytes, filename=filename)
 
 
-# =============================================================================
-# PAGE 3: EXTRACTION RESULTS
-# =============================================================================
+# Page 3: Extraction Results
 def render_results_page() -> None:
     """Renders structured extraction results, items table, editor, validation panel, and JSON."""
     extracted_data = st.session_state.get("extracted_data")
@@ -479,9 +467,7 @@ def render_results_page() -> None:
         render_json_export(extracted_data, validation_result, filename=filename)
 
 
-# =============================================================================
-# PAGE 4: ABOUT THE APPLICATION
-# =============================================================================
+# Page 4: About the Application
 def render_about_page() -> None:
     """Renders project documentation, architecture, and engineering overview."""
     st.markdown(
@@ -542,9 +528,7 @@ def render_about_page() -> None:
     )
 
 
-# =============================================================================
-# MAIN APPLICATION ROUTER
-# =============================================================================
+# Main application router
 def main() -> None:
     """Main application loop."""
     render_header()

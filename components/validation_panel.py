@@ -40,9 +40,7 @@ def render_validation_panel(
     if invoice_data:
         currency = invoice_data.get("currency") or "NPR"
 
-    # =========================================================================
-    # 1. OVERALL STATUS BANNER
-    # =========================================================================
+    # 1. Overall status banner
     if is_valid and len(warnings) == 0:
         st.markdown(
             """
@@ -101,9 +99,7 @@ def render_validation_panel(
             unsafe_allow_html=True,
         )
 
-    # =========================================================================
-    # 2. ERRORS & WARNINGS BREAKDOWN
-    # =========================================================================
+    # 2. Errors & warnings breakdown
     if errors:
         st.markdown(
             f"""
@@ -146,9 +142,7 @@ def render_validation_panel(
             )
         st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
-    # =========================================================================
-    # 3. GRANULAR RULES AUDIT GRID
-    # =========================================================================
+    # 3. Granular rules audit grid
     st.markdown(
         """
         <div style="color: #0f172a; font-weight: 700; font-size: 0.92rem; margin-top: 10px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
@@ -247,9 +241,7 @@ def render_validation_panel(
             unsafe_allow_html=True,
         )
 
-    # =========================================================================
-    # 4. ARITHMETIC RECONCILIATION SUMMARY
-    # =========================================================================
+    # 4. Arithmetic reconciliation summary
     if invoice_data:
         subtotal_val = invoice_data.get("subtotal")
         tax_val = invoice_data.get("tax_amount")

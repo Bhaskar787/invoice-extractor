@@ -33,9 +33,7 @@ from src.extractor import (
 )
 
 
-# ============================================================================
 # 1. Numeric Sanitization Tests (_clean_number)
-# ============================================================================
 
 def test_clean_number_finite_floats_and_integers() -> None:
     """Verify clean_number handles standard integers and floats correctly."""
@@ -45,13 +43,13 @@ def test_clean_number_finite_floats_and_integers() -> None:
 
 
 def test_clean_number_rejects_booleans() -> None:
-    """Issue 10: In Python bool is subclass of int; reject True and False."""
+    """In Python bool is subclass of int; reject True and False."""
     assert _clean_number(True) is None
     assert _clean_number(False) is None
 
 
 def test_clean_number_rejects_nan_and_infinity() -> None:
-    """Issue 11 & 46: Reject non-finite numbers (NaN, Inf, -Inf)."""
+    """Reject non-finite numbers (NaN, Inf, -Inf)."""
     assert _clean_number(float("nan")) is None
     assert _clean_number(float("inf")) is None
     assert _clean_number(float("-inf")) is None
@@ -77,7 +75,7 @@ def test_clean_number_parses_trailing_unit_words() -> None:
 
 
 def test_clean_number_rejects_malformed_numeric_strings() -> None:
-    """Issue 9, 16 & 47: Reject ambiguous or malformed numeric strings."""
+    """Reject ambiguous or malformed numeric strings."""
     assert _clean_number("abc123def") is None
     assert _clean_number("123abc") is None
     assert _clean_number("invoice123") is None
@@ -87,12 +85,10 @@ def test_clean_number_rejects_malformed_numeric_strings() -> None:
     assert _clean_number(None) is None
 
 
-# ============================================================================
 # 2. Defensive Data Cleaning Tests (clean_invoice_data)
-# ============================================================================
 
 def test_clean_invoice_data_rejects_non_dictionary() -> None:
-    """Issue 12: Rejects non-dictionary input explicitly."""
+    """Rejects non-dictionary input explicitly."""
     with pytest.raises(ValueError, match="clean_invoice_data expected a dictionary"):
         clean_invoice_data("not a dictionary")
 
@@ -101,7 +97,7 @@ def test_clean_invoice_data_rejects_non_dictionary() -> None:
 
 
 def test_clean_invoice_data_preserves_missing_item_description_as_none() -> None:
-    """Issue 2, 13 & 37: Missing item description remains None without placeholder."""
+    """Missing item description remains None without placeholder."""
     raw = {
         "invoice_number": "RT-2024-1052",
         "items": [
@@ -115,7 +111,7 @@ def test_clean_invoice_data_preserves_missing_item_description_as_none() -> None
 
 
 def test_clean_invoice_data_preserves_invalid_item_objects() -> None:
-    """Issue 6, 14 & 42: Non-dictionary item objects preserved for validator to catch."""
+    """Non-dictionary item objects preserved for validator to catch."""
     raw = {
         "items": [
             "corrupted_item_string",
@@ -129,7 +125,7 @@ def test_clean_invoice_data_preserves_invalid_item_objects() -> None:
 
 
 def test_clean_invoice_data_passes_through_non_list_items() -> None:
-    """Issue 5, 19 & 41: Passes through non-list items to trigger validator error."""
+    """Passes through non-list items to trigger validator error."""
     raw = {
         "items": "should_be_a_list",
         "total_amount": "100.00",
@@ -139,12 +135,10 @@ def test_clean_invoice_data_passes_through_non_list_items() -> None:
     assert cleaned["total_amount"] == 100.0
 
 
-# ============================================================================
 # 3. File & Image Validation Tests (_validate_image_file)
-# ============================================================================
 
 def test_image_validation_missing_file_raises_error(tmp_path: Path) -> None:
-    """Issue 53: Missing image file raises ImageValidationError."""
+    """Missing image file raises ImageValidationError."""
     missing = tmp_path / "nonexistent.png"
     with pytest.raises(ImageValidationError, match="not found"):
         _validate_image_file(missing)
@@ -157,7 +151,7 @@ def test_image_validation_directory_path_raises_error(tmp_path: Path) -> None:
 
 
 def test_image_validation_unsupported_format_raises_error(tmp_path: Path) -> None:
-    """Issue 54: Unsupported file extension raises ImageValidationError."""
+    """Unsupported file extension raises ImageValidationError."""
     text_file = tmp_path / "invoice.txt"
     text_file.write_text("dummy invoice text")
     with pytest.raises(ImageValidationError, match="Unsupported file format"):
@@ -165,7 +159,7 @@ def test_image_validation_unsupported_format_raises_error(tmp_path: Path) -> Non
 
 
 def test_image_validation_corrupted_image_raises_error(tmp_path: Path) -> None:
-    """Issue 55: Non-image byte file with .png extension raises ImageValidationError."""
+    """Non-image byte file with .png extension raises ImageValidationError."""
     corrupted = tmp_path / "corrupted.png"
     corrupted.write_bytes(b"NOT_A_VALID_PNG_FILE_DATA_CORRUPTED")
     with pytest.raises(ImageValidationError, match="corrupted or not a valid image"):
@@ -173,7 +167,7 @@ def test_image_validation_corrupted_image_raises_error(tmp_path: Path) -> None:
 
 
 def test_image_validation_oversized_file_raises_error(tmp_path: Path) -> None:
-    """Issue 33: File exceeding 20 MB size limit raises ImageValidationError."""
+    """File exceeding 20 MB size limit raises ImageValidationError."""
     oversized = tmp_path / "huge.png"
     oversized.write_bytes(b"0" * 10)
     real_stat = oversized.stat()
@@ -197,12 +191,10 @@ def test_image_validation_valid_png_succeeds(tmp_path: Path) -> None:
     assert mime == "image/png"
 
 
-# ============================================================================
 # 4. Configuration Validation Tests (validate_config)
-# ============================================================================
 
 def test_validate_config_missing_or_placeholder_raises_error() -> None:
-    """Issue 56: Missing or placeholder API key raises ConfigurationError."""
+    """Missing or placeholder API key raises ConfigurationError."""
     with pytest.raises(ConfigurationError, match="GEMINI_API_KEY is missing or invalid"):
         validate_config("")
 
@@ -215,9 +207,7 @@ def test_validate_config_valid_key_returns_key() -> None:
     assert validate_config("AIzaSyDUMMYKEY1234567890") == "AIzaSyDUMMYKEY1234567890"
 
 
-# ============================================================================
 # 5. Model JSON Response Parsing Tests (parse_json_response)
-# ============================================================================
 
 def test_parse_json_response_with_markdown_code_fences() -> None:
     """Markdown ```json ... ``` blocks are cleanly stripped."""
@@ -229,7 +219,7 @@ def test_parse_json_response_with_markdown_code_fences() -> None:
 
 
 def test_parse_json_response_empty_raises_error() -> None:
-    """Issue 51: Empty or whitespace response raises JSONParsingError."""
+    """Empty or whitespace response raises JSONParsingError."""
     with pytest.raises(JSONParsingError, match="returned an empty response"):
         parse_json_response("")
     with pytest.raises(JSONParsingError, match="returned an empty response"):
@@ -237,14 +227,12 @@ def test_parse_json_response_empty_raises_error() -> None:
 
 
 def test_parse_json_response_malformed_raises_error() -> None:
-    """Issue 50: Non-JSON raw text raises JSONParsingError."""
+    """Non-JSON raw text raises JSONParsingError."""
     with pytest.raises(JSONParsingError, match="Failed to decode model response as JSON"):
         parse_json_response("This is not a JSON object: {unclosed")
 
 
-# ============================================================================
 # 6. Gemini API Interaction, Retries, Fallback & Pipeline (extract_invoice)
-# ============================================================================
 
 @pytest.fixture
 def dummy_png(tmp_path: Path) -> Path:
@@ -256,7 +244,7 @@ def dummy_png(tmp_path: Path) -> Path:
 
 
 def test_extract_invoice_fatal_auth_error_no_fallback(dummy_png: Path) -> None:
-    """Issue 52: 403 / invalid API key raises immediately without cycling fallbacks."""
+    """403 / invalid API key raises immediately without cycling fallbacks."""
     mock_client = MagicMock()
     mock_client.models.generate_content.side_effect = Exception("403 Forbidden: API_KEY_INVALID")
 
@@ -266,7 +254,7 @@ def test_extract_invoice_fatal_auth_error_no_fallback(dummy_png: Path) -> None:
 
 
 def test_extract_invoice_rate_limit_exponential_backoff(dummy_png: Path) -> None:
-    """Issue 27 & 28: 429 triggers exponential backoff retry on same model."""
+    """429 triggers exponential backoff retry on same model."""
     valid_payload = {
         "invoice_number": "RT-2024-1052",
         "invoice_date": "2024-10-14",
@@ -301,7 +289,7 @@ def test_extract_invoice_rate_limit_exponential_backoff(dummy_png: Path) -> None
 
 
 def test_extract_invoice_model_fallback_on_404(dummy_png: Path) -> None:
-    """Issue 7, 26 & 28: 404 (model not found/deprecated) triggers fallback to next model."""
+    """404 (model not found/deprecated) triggers fallback to next model."""
     valid_payload = {
         "invoice_number": "INV-FALLBACK-1",
         "invoice_date": "2024-10-14",
@@ -336,7 +324,7 @@ def test_extract_invoice_model_fallback_on_404(dummy_png: Path) -> None:
 
 
 def test_extract_invoice_blocked_by_safety_filter(dummy_png: Path) -> None:
-    """Issue 30: Blocked by safety filter candidate raises APIExtractionError."""
+    """Blocked by safety filter candidate raises APIExtractionError."""
     mock_resp = MagicMock()
     mock_cand = MagicMock()
     mock_cand.finish_reason = "SAFETY"
@@ -351,7 +339,7 @@ def test_extract_invoice_blocked_by_safety_filter(dummy_png: Path) -> None:
 
 
 def test_extract_invoice_complete_pipeline(dummy_png: Path) -> None:
-    """Issue 57: End-to-end extraction pipeline verification."""
+    """End-to-end extraction pipeline verification."""
     invoice_payload = {
         "invoice_number": "RT-2024-1052",
         "invoice_date": "2024-10-14",
@@ -385,7 +373,7 @@ def test_extract_invoice_complete_pipeline(dummy_png: Path) -> None:
         assert data["subtotal"] == 67500.0
         assert data["total_amount"] == 76275.0
 
-        # Verify metadata (Issue 34)
+        # Verify metadata
         assert "_metadata" in data
         assert "model_used" in data["_metadata"]
         assert data["_metadata"]["image_size_bytes"] > 0

@@ -44,9 +44,7 @@ def render_invoice_items(
 
     tab_view, tab_edit = st.tabs(["Line Items Table", "Edit Invoice & Live Revalidate"])
 
-    # =========================================================================
-    # TAB 1: FORMATTED TABLE VIEW
-    # =========================================================================
+    # Formatted table view tab
     with tab_view:
         if not items:
             st.markdown(
@@ -96,9 +94,7 @@ def render_invoice_items(
                     unsafe_allow_html=True,
                 )
 
-    # =========================================================================
-    # TAB 2: INTERACTIVE EDIT & REVALIDATE
-    # =========================================================================
+    # Interactive edit & revalidate tab
     with tab_edit:
         st.markdown(
             """

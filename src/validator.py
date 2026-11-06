@@ -71,9 +71,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
     warnings: List[str] = []
     item_line_totals: List[Dict[str, Any]] = []
 
-    # ------------------------------------------------------------------------
     # 0. Root Structure Check
-    # ------------------------------------------------------------------------
     if not isinstance(data, dict):
         return {
             "is_valid": False,
@@ -82,17 +80,13 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
             "calculated_details": {"item_line_totals": [], "calculated_items_sum": None},
         }
 
-    # ------------------------------------------------------------------------
     # 1. Required Top-Level Fields Check
-    # ------------------------------------------------------------------------
     for field in REQUIRED_FIELDS:
         val = data.get(field)
         if val is None or (isinstance(val, str) and not val.strip()):
             errors.append(f"Missing required field: '{field}'.")
 
-    # ------------------------------------------------------------------------
     # 2. Invoice Date Format Check
-    # ------------------------------------------------------------------------
     invoice_date = data.get("invoice_date")
     if invoice_date is not None:
         if not _is_valid_date(invoice_date):
@@ -100,9 +94,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
                 f"Invalid invoice_date format '{invoice_date}': expected YYYY-MM-DD (valid calendar date)."
             )
 
-    # ------------------------------------------------------------------------
     # 3. Monetary Summary Fields Validation (Total, Subtotal, Tax)
-    # ------------------------------------------------------------------------
     total_amount = data.get("total_amount")
     if total_amount is not None:
         if not _is_finite_number(total_amount):
@@ -130,9 +122,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
         elif tax_amount < 0:
             errors.append(f"Field 'tax_amount' cannot be negative, got {tax_amount}.")
 
-    # ------------------------------------------------------------------------
     # 4. Line Items Validation & Calculation
-    # ------------------------------------------------------------------------
     items = data.get("items")
     calculated_items_total = 0.0
     all_items_computable = True
@@ -157,7 +147,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
             qty = item.get("quantity")
             price = item.get("unit_price")
 
-            # Check description (Issue 2 & 13 & 37: must not be empty or placeholder)
+            # Check description: must not be empty or blank
             if desc is None or not str(desc).strip():
                 errors.append(f"Item #{idx}: Description is missing or blank.")
                 desc_label = f"Item #{idx}"
@@ -166,7 +156,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
 
             item_computable = True
 
-            # Check quantity (Issue 3 & 18: missing quantity is an ERROR, not warning)
+            # Check quantity: mandatory positive number
             if qty is None:
                 errors.append(f"{desc_label}: Missing mandatory quantity.")
                 item_computable = False
@@ -179,7 +169,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
                 errors.append(f"{desc_label}: Quantity must be strictly greater than 0, got {qty}.")
                 item_computable = False
 
-            # Check unit price (Issue 4 & 18: missing unit price is an ERROR, not warning)
+            # Check unit price: mandatory non-negative number
             if price is None:
                 errors.append(f"{desc_label}: Missing mandatory unit price.")
                 item_computable = False
@@ -219,9 +209,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
 
     calculated_items_total = round(calculated_items_total, 2)
 
-    # ------------------------------------------------------------------------
     # 5. Sum of Line Totals vs Subtotal
-    # ------------------------------------------------------------------------
     if subtotal is not None and _is_finite_number(subtotal):
         if all_items_computable:
             if abs(calculated_items_total - float(subtotal)) > FLOAT_TOLERANCE:
@@ -237,9 +225,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
             "Subtotal is not provided; skipping items sum vs. subtotal verification."
         )
 
-    # ------------------------------------------------------------------------
     # 6. Subtotal + Tax Amount vs Total Amount
-    # ------------------------------------------------------------------------
     if (
         subtotal is not None
         and _is_finite_number(subtotal)
@@ -259,9 +245,7 @@ def validate_invoice(data: Any) -> Dict[str, Any]:
             "Tax amount is not provided; skipping subtotal + tax = total verification."
         )
 
-    # ------------------------------------------------------------------------
     # 7. Calculated Grand Total vs Extracted Total Amount
-    # ------------------------------------------------------------------------
     if total_amount is not None and _is_finite_number(total_amount):
         if all_items_computable:
             if tax_amount is not None and _is_finite_number(tax_amount):

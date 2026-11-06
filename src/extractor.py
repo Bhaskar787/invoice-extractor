@@ -66,9 +66,7 @@ EXPECTED_INVOICE_KEYS: List[str] = [
 ]
 
 
-# ============================================================================
 # Pydantic Schemas for Gemini Structured JSON Output
-# ============================================================================
 
 class LineItem(BaseModel):
     """Schema for individual line items on the invoice."""
@@ -122,9 +120,7 @@ class InvoiceData(BaseModel):
     )
 
 
-# ============================================================================
 # Prompt Definition
-# ============================================================================
 
 EXTRACTION_PROMPT = """You are an expert invoice data extraction system.
 Analyze the provided invoice image carefully and extract key invoice information into valid JSON.
@@ -161,9 +157,7 @@ Follow these strict rules:
 """
 
 
-# ============================================================================
 # Parsing and Data Cleaning Helpers
-# ============================================================================
 
 def parse_json_response(raw_text: str) -> Dict[str, Any]:
     """
@@ -236,11 +230,11 @@ def _clean_number(val: Any) -> Optional[Union[float, int]]:
     - Strings with currency signs and formatting are cleanly parsed.
     - Arbitrary text or malformed numeric strings (e.g. "abc123def") are REJECTED (returns None).
     """
-    # Issue 10: Reject booleans
+    # Reject boolean types (bool is a subclass of int)
     if isinstance(val, bool) or val is None or val == "":
         return None
 
-    # Issue 11: Validate finite float/int
+    # Validate finite float/int
     if isinstance(val, (int, float)):
         if math.isnan(val) or math.isinf(val):
             return None
@@ -270,7 +264,7 @@ def _clean_number(val: Any) -> Optional[Union[float, int]]:
             flags=re.IGNORECASE,
         ).strip()
 
-        # Issue 9 & 16: Strict float conversion (rejects partial matches like "abc123")
+        # Strict float conversion (rejects partial matches like "abc123")
         try:
             num = float(cleaned)
             if math.isnan(num) or math.isinf(num):
@@ -302,7 +296,7 @@ def clean_invoice_data(data: Any) -> Dict[str, Any]:
     Raises:
         ValueError: If data is not a dictionary.
     """
-    # Issue 12: Explicitly reject non-dictionary input
+    # Reject non-dictionary input
     if not isinstance(data, dict):
         raise ValueError(
             f"clean_invoice_data expected a dictionary, but received: {type(data).__name__}"
@@ -325,7 +319,7 @@ def clean_invoice_data(data: Any) -> Dict[str, Any]:
 
     if isinstance(raw_items, list):
         for item in raw_items:
-            # Issue 6 & 14: If item is not a dict, preserve it as an invalid item object
+            # If item is not a dict, preserve it as an invalid item object
             if not isinstance(item, dict):
                 cleaned_items.append(
                     {
@@ -337,7 +331,7 @@ def clean_invoice_data(data: Any) -> Dict[str, Any]:
                 )
                 continue
 
-            # Issue 2 & 13: Preserve missing description as None (NO "Unnamed Item" placeholder!)
+            # Preserve missing description as None without placeholder substitution
             raw_desc = item.get("description")
             if raw_desc is not None and not isinstance(raw_desc, (dict, list)):
                 desc_str = str(raw_desc).strip()
@@ -371,9 +365,7 @@ def clean_invoice_data(data: Any) -> Dict[str, Any]:
     return cleaned
 
 
-# ============================================================================
 # File & Image Content Validation
-# ============================================================================
 
 def _validate_image_file(image_path: Path) -> str:
     """
@@ -401,7 +393,7 @@ def _validate_image_file(image_path: Path) -> str:
             f"The path '{image_path}' points to a directory, not a file."
         )
 
-    # Issue 33: Check file size limit
+    # Verify file size limit
     try:
         file_size = image_path.stat().st_size
     except OSError as err:
@@ -421,7 +413,7 @@ def _validate_image_file(image_path: Path) -> str:
             f"Supported image formats are: {supported}"
         )
 
-    # Issue 32: Explicit image-content verification using Pillow
+    # Verify image integrity using Pillow
     try:
         with Image.open(image_path) as img:
             img.verify()
@@ -433,9 +425,7 @@ def _validate_image_file(image_path: Path) -> str:
     return SUPPORTED_MIME_TYPES[ext]
 
 
-# ============================================================================
 # Main Extraction Function with Fallbacks & Backoff
-# ============================================================================
 
 def extract_invoice(
     image_path: str | Path,
@@ -500,7 +490,7 @@ def extract_invoice(
         temperature=0.0,
     )
 
-    # Issue 26: Configurable fallback model list
+    # Configure fallback models
     env_fallbacks = os.getenv("GEMINI_FALLBACK_MODELS")
     if env_fallbacks:
         configured_fallbacks = [m.strip() for m in env_fallbacks.split(",") if m.strip()]
@@ -549,7 +539,7 @@ def extract_invoice(
                         "Please check your internet connection or proxy settings."
                     ) from err
 
-                # Issue 27 & 28: Handle 429 Rate Limits with Exponential Backoff
+                # Handle rate limits (429) and high server load (503) with exponential backoff
                 is_rate_limit = status_code == 429 or "429" in err_msg or "resource_exhausted" in err_msg.lower()
                 is_server_busy = status_code == 503 or "503" in err_msg or "unavailable" in err_msg.lower()
                 is_model_not_found = status_code == 404 or "404" in err_msg or "not_found" in err_msg.lower()
@@ -579,7 +569,7 @@ def extract_invoice(
                     f"Google Gemini API error while processing the invoice with model '{active_model}': {err}"
                 ) from err
 
-            # Issue 30 & 31: Inspect finish_reason for blocked or truncated responses
+            # Inspect finish_reason for safety filter blocks or token truncation
             candidates = getattr(response, "candidates", None)
             if candidates and len(candidates) > 0:
                 first_cand = candidates[0]
@@ -612,7 +602,7 @@ def extract_invoice(
                 cleaned_data = clean_invoice_data(raw_dict)
 
 
-                # Issue 34: Include extraction metadata
+                # Include extraction metadata
                 cleaned_data["_metadata"] = {
                     "model_used": active_model,
                     "model_fallback_applied": active_model != primary_model,
